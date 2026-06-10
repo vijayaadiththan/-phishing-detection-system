@@ -1,0 +1,50 @@
+# Product Requirements Document: Kiro (Simplified & Hardened Version)
+
+## 1. Project Overview
+Kiro is a streamlined, core-Python CLI tool that analyzes URLs to determine if they are legitimate or potential phishing attempts. It is designed as a single, robust script that prioritizes accurate threat detection while actively preventing common false positives.
+
+## 2. Objectives
+* Build a fast, single-file CLI tool for URL security scanning.
+* Ensure the tool provides plain-English reasons for any warnings it triggers.
+* Resilience: Design the architecture specifically to prevent the input and logic errors encountered during early prototype testing.
+
+## 3. Known Issues & Preventative Measures
+During initial testing, two major friction points were identified. This version of Kiro is architected to explicitly prevent them:
+
+* Error 1: The Homograph False Positive (Flagging Legitimate Sites)
+    * The Problem: The scanner flagged legitimate domains (like facebook.com) as homograph attacks because the domain contained the target keyword.
+    * The Prevention: Implementation of a Pre-Scan Whitelist. The system must check the parsed domain against a list of known, trusted sites (e.g., google.com, facebook.com). If an exact match is found, the script immediately returns "SAFE" and skips the homograph evaluation entirely.
+* Error 2: CLI Input Friction (Argparse Crashes)
+    * The Problem: The script threw a usage error and terminated if the user forgot to type the --url argument.
+    * The Prevention: Interactive CLI Loop. The tool abandons strict command-line arguments in favor of an interactive terminal prompt (`kiro [User] >>`). If the user hits Enter without pasting a URL, the loop catches the empty input, warns the user, and asks again without crashing.
+
+## 4. Core Features
+* Interactive CLI Prompt: A persistent session that waits for user input rather than requiring complex terminal commands.
+* Smart Parsing: Cleans inputs and automatically handles missing http:// protocols.
+* Pre-Scan Whitelist: Bypasses scans for known safe domains to prevent false alarms (fixing Error 1).
+* Threat Scanning: 
+    * Detects IP addresses used in place of domains.
+    * Detects suspicious URL shorteners.
+    * Flags domains that attempt to impersonate legitimate brands (Homograph/Typosquatting).
+* Reasoning Output: Prints a color-coded risk assessment with a numbered list explaining the detected issues.
+
+## 5. User Flow
+1. User runs `python kiro.py`.
+2. The Kiro banner appears, and the tool prompts: `kiro [User] >> ` (fixing Error 2).
+3. User pastes a URL.
+4. Kiro checks the Whitelist. If safe, it returns "SAFE" (fixing Error 1).
+5. If not on the whitelist, Kiro runs the threat scanners.
+6. Kiro outputs the final verdict and loops back to the prompt for the next URL.
+
+## 6. Technical Stack
+* Language: Python 3.x
+* Core Libraries: urllib.parse (URL decomposition), re (Pattern matching), sys (Terminal execution).
+* External Libraries: requests (For resolving redirects/connectivity).
+
+## 7. Simplified File Structure
+The project is reduced to a single-file monolith to make debugging easier and prevent cross-module import errors.
+
+kiro/
+├── kiro.py              # Contains the interactive prompt, whitelist, and all logic
+├── requirements.txt     # Lists external libraries (e.g., requests)
+└── README.md            # Simple instructions on how to run it
