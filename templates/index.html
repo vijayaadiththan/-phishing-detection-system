@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kiro Phishing Detection</title>
+    <style>
+        body{
+            background:#000;
+            color:#00ff41;
+            font-family:Courier New, monospace;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+
+        .box{
+            width:600px;
+            border:2px solid #00ff41;
+            padding:30px;
+            border-radius:10px;
+            box-shadow:0 0 20px #00ff41;
+        }
+
+        h1{
+            text-align:center;
+        }
+
+        input{
+            width:100%;
+            padding:12px;
+            margin-top:10px;
+            background:black;
+            color:#00ff41;
+            border:1px solid #00ff41;
+        }
+
+        button{
+            width:100%;
+            margin-top:15px;
+            padding:12px;
+            background:#00ff41;
+            color:black;
+            font-weight:bold;
+            cursor:pointer;
+        }
+
+        #result{
+            margin-top:20px;
+        }
+
+        ul{
+            margin-top:10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+
+    <h1>🛡️PHISHING DETECTOR</h1>
+
+    <input
+        type="text"
+        id="url"
+        placeholder="Enter URL">
+
+    <button onclick="analyzeURL()">
+        ANALYZE TARGET
+    </button>
+
+    <div id="result">
+    </div>
+
+</div>
+
+<script>
+
+async function analyzeURL(){
+
+    const url =
+    document.getElementById("url").value;
+
+    if(!url){
+        alert("Enter a URL");
+        return;
+    }
+
+    const response =
+    await fetch("/analyze",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            url:url
+        })
+
+    });
+
+    const data =
+    await response.json();
+
+    let html = "";
+
+    if(data.verdict === "SAFE"){
+
+        html += "<h2 style='color:lime'>🟢 SAFE</h2>";
+
+    }else{
+
+        html += "<h2 style='color:red'>🔴 SUSPICIOUS</h2>";
+
+    }
+
+    html +=
+    "<p><b>Verdict:</b> "
+    + data.verdict +
+    "</p>";
+
+    html += "<ul>";
+
+    data.reasons.forEach(reason=>{
+
+        html += "<li>" +
+        reason +
+        "</li>";
+
+    });
+
+    html += "</ul>";
+
+    document.getElementById("result")
+    .innerHTML = html;
+}
+
+</script>
+
+</body>
+</html>
